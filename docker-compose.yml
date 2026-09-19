@@ -1,13 +1,54 @@
 version: "3.7"
 services:
-  web:
+  dicecloud:
+    container_name: dicecloud
+    platform: linux/amd64
     build:
       context: ./
     volumes:
       - .:/home/dicecloud/DiceCloud
     ports:
-      - "3000:3000"
-      - "3003:3003"
+      - "6000:3000"
+      - "6003:3003"
+    networks:
+      - isolated
+      - public
+    env_file:
+      - dicecloud.env
     # entrypoint: /bin/bash
     # stdin_open: true
     # tty: true
+  mongo:
+    container_name: mongo
+    hostname: mongo
+    image: mongodb/mongodb-atlas-local
+    ports:
+      - "27017:27017"
+    env_file:
+      - mongo.env
+    volumes:
+      - db:/data/db
+      - configdb:/data/configdb
+      - mongot:/data/mongot
+    networks:
+      - isolated
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    depends_on:
+      - mongo
+    env_file:
+      - mongo-express.env
+    ports:
+      - "6006:8081"
+    networks:
+      - isolated
+      - public
+volumes:
+  db:
+  configdb:
+  mongot:
+networks:
+  isolated:
+    internal: true
+  public:
